@@ -1,9 +1,9 @@
 # adventure.py
 
 #Code for text to print one at a time, cuz its cool   ¯\_(ツ)_/¯
-import sys
-import time
 import sys, time
+import string
+import random
 
 bunkerLocked = True
 cyBattle = False
@@ -29,6 +29,17 @@ def fast_type(text):
         time.sleep(0.02)
     return ""
 
+def random_letters(length=8, speed=0.05):
+    chars = string.ascii_uppercase + string.digits + "!@#$%^&*"
+    try:
+        while True:
+            scrambled = "".join(random.choice(chars) for _ in range(length))
+            sys.stdout.write("\r" + scrambled)  # overwrite the same line
+            sys.stdout.flush()
+            time.sleep(speed)
+    except KeyboardInterrupt:
+        print("\nStopped.")
+
 print("-------------------------------------------------------------")
 slow_type("\n=== TEXT ADVENTURE: SECRET BUNKER ===")
 fast_type("\nType 'help' for commands. \n")
@@ -36,17 +47,29 @@ fast_type("\nType 'help' for commands. \n")
 # --- game state ---
 current_room = "trail"     # starting room
 rooms = ["trail", "village", "forest", "bunker", "darkness"]  #flexible list of locations
-exits = [
-    ["village"],                              # Trail exits into
-    ["trail", "forest", "bunker"],            # Village exits into
-    ["village", "bunker"],                    # Forest exits into
-    ["forest", "darkness"],                   # Bunker exits into
-    []                                        # Darkness exits into (nothing, endgame)
-]
+# The exits for each location.   If I'm currently in ______, I can go to...
+trail_exits = ["village"]
+village_exits = ["trail", "forest"]
+forest_exits = ["trail", "village", "bunker"]
+bunker_exits = ["village", "forest"]
+dark_exits = []
+
 inventory = []                                # Inventory list, to be expanded during gameplay
 turns_left = 30
 has_won = False
 is_running = True
+
+def alwaysShow_Rooms():
+    if current_room == "trail":
+        print("You are currently at the {current_room}, you may go to the {trail_exits} from here.")
+    if current_room == "village":
+        print("You are currently at the {current_room}, you may go to the {village_exits} from here.")
+    if current_room == "forest":
+        print("You are currently at the {current_room}, you may go to the {forest_exits} from here.")
+    if current_room == "bunker":
+        print("You are currently at the {current_room}, you may go to the {bunker_exits} from here.")
+    if current_room == "darkness":
+        print(f"You are currently at the {current_room}, you may go to the {random_letters(length=10, speed=0.3)} from here.")
 
 def show_help():
     fast_type("Commands: search, go <room>, use <item>, rooms, inv, help, quit.")
@@ -158,7 +181,7 @@ def move_player(dest):
     if cur_idx == -1:
         slow_type("You're feeling isolated and rather lost...")
         return
-    if dest in exits[cur_idx]:
+    if dest in [cur_idx]:
         current_room = dest
         show_room()
     else:
@@ -172,8 +195,8 @@ def use_item(item):
             print("The sliding metal door shutters, shaking violently as it lifts.\nThe scent of rust fills your lungs as you gaze into the abyss before you..")
             # adding the darkness to the bunker exits (list method)
             b_idx = room_index("bunker")
-            if "darkness" not in exits[b_idx]:
-                exits[b_idx].append("darkness")
+            if "darkness" not in [b_idx]:
+                [b_idx].append("darkness")
             
         else:
             print("Incorrect. The kepad beeps angrily and flashes red.")
