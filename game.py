@@ -46,7 +46,27 @@ fast_type("\nType 'help' for commands. \n")
 
 # --- game state ---
 current_room = "trail"     # starting room
-rooms = ["trail", "village", "forest", "bunker", "darkness"]  #flexible list of locations
+rooms = {
+    "trail": {
+        "description": "A dusty old trail, a sign ahead of you says:\n'Welcome to Pine Vill\nQuiet village, quaint people.'", },
+    "village": {
+        "description": "Welcome to Pine Vill, a relatively small community offset from most popular locations, known for it's hospitality and traditional lifestyle.\nPerhaps you can find a vendor and purchase an item for your explorations...",
+        "exits": ["trail", "forest"]
+    },
+    "forest": {
+        "description": "A deep forest leading out of Pine Vill with a seemingly ancient path leading somewhere into the distance.\nShadows dance between the trees as you pass and you hear many... questionable sounds around you... Some sound much closer than others..",
+        "exits": ["trail", "village", "bunker"]
+    },
+    "bunker": {
+        "description": "The path leads to what can only be described as a bunker hidden far into the woods. It's remains decorated with vines, claw marks, and various other signs suggesting of it's age.\nBeneath the surrounding overgrowth you can vaguely make out several buttons of varying numeric value... perhaps an item could help you clear the debris so that you may uncover what lies beneath.",
+        "exits": ["village", "forest"]
+    },
+    "darkness": {
+        "description": "A metal stairway leads down into the bunker, even more scratch marks can be seen on the walls and floor. The stairs clang and creak as you approach, groaning under new unexpected weight they hadn't felt for decades...",
+        "exits": []
+    }
+}         #flexible list of locations
+
 # The exits for each location.   If I'm currently in ______, I can go to...
 trail_exits = ["village"]
 village_exits = ["trail", "forest"]
@@ -59,36 +79,28 @@ turns_left = 30
 has_won = False
 is_running = True
 
-def alwaysShow_Rooms():
-    if current_room == "trail":
-        print("You are currently at the {current_room}, you may go to the {trail_exits} from here.")
-    if current_room == "village":
-        print("You are currently at the {current_room}, you may go to the {village_exits} from here.")
-    if current_room == "forest":
-        print("You are currently at the {current_room}, you may go to the {forest_exits} from here.")
-    if current_room == "bunker":
-        print("You are currently at the {current_room}, you may go to the {bunker_exits} from here.")
-    if current_room == "darkness":
-        print(f"You are currently at the {current_room}, you may go to the {random_letters(length=10, speed=0.3)} from here.")
-
-def show_help():
-    fast_type("Commands: search, go <room>, use <item>, rooms, inv, help, quit.")
-
 def show_room():
     fast_type(f"\nYou are currently at the {current_room}.")
     # Different descriptions based on current location
-    if current_room == "trail":
-        typing(" A dusty old trail, a sign ahead of you says:\n'Welcome to Pine Vill\nQuiet village, quaint people.'")
-    elif current_room == "village":
-        typing(" Welcome to Pine Vill, a relatively small community offset from most popular locations, known for it's hospitality and traditional lifestyle.\nPerhaps you can find a vendor and purchase an item for your explorations...")
-    elif current_room == "forest":
-        typing(" A deep forest leading out of Pine Vill with a seemingly ancient path leading somewhere into the distance.\nShadows dance between the trees as you pass and you hear many... questionable sounds around you... Some sound much closer than others..")
-    elif current_room == "bunker":
-        typing(" The path leads to what can only be described as a bunker hidden far into the woods. It's remains decorated with vines, claw marks, and various other signs suggesting of it's age.\nBeneath the surrounding overgrowth you can vaguely make out several buttons of varying numeric value... perhaps an item could help you clear the debris so that you may uncover what lies beneath.")
-    elif current_room == "darkness":
-        typing(" A metal stairway leads down into the bunker, even more scratch marks can be seen on the walls and floor. The stairs clang and creak as you approach, groaning under new unexpected weight they hadn't felt for decades...")
+    fast_type(f"\nYou are current at the {current_room}.")
+    typing(" " + rooms[current_room]["description"])
+
+def random_letters_string(length=10):
+    chars = string.ascii_uppercase + string.digits + "!@$%^&*"
+    return "".join(random.choice(chars) for _ in range(length))
+
+
+def alwaysShow_Rooms():
+    if current_room == "darkness":
+        rand_text = random_letters_string(10)
+    print(f"\nYou are currently at the {current_room}, you may go to {rand_text} from here.")
     else:
-        slow_type(" As you gaze into the stillness of the distance you realize how quiet it is...\nToo quiet, one could say...")
+    exits = rooms[current_room]["exits"]
+    print(f"You are currently at the {current_room}, you may go to {exits} from here.")
+
+def show_help():
+    fast_type("\nCommands: search, go <room>, use <item>, nv, help, quit.")
+    alwaysShow_Rooms()
 
 def search_room():
     if current_room == "trail":
@@ -107,7 +119,7 @@ def search_room():
             rooms.append("Jack's Shop")
         if enterShopYN == "N":
             print("You decide not to enter. Perhaps you can revisit this location in the future if you ever need something.")
-        if enterShopYN != "Y" or "N":
+        if enterShopYN not in ("Y", "N"):
             typing("Please state 'Y' or 'N'")
     
     elif current_room == "forest":
@@ -119,7 +131,7 @@ def search_room():
             cyBattle = True
         if cyrussInteract == "N":
             fast_type("You decide to avoid the strange figure for the time being.\nProbably a wise decision in retrospect.")
-        if cyrussInteract != "Y" or "N":
+        if cyrussInteract not in ("Y", "N"):
             typing("Please state 'Y' or 'N'")
     elif current_room == "bunker":
         typing("Scouting the surroundings, you notice the ground is layered in rocks covering what remains of the path leading to the metal door of the bunker. Do you take one?")
@@ -177,15 +189,16 @@ def room_index(name):
 
 def move_player(dest):
     global current_room
-    cur_idx = room_index(current_room)
-    if cur_idx == -1:
-        slow_type("You're feeling isolated and rather lost...")
-        return
-    if dest in [cur_idx]:
+    # Map each room to exits\
+    dest = dest.lower
+
+    # Checking if destination is a valid exit from the current room
+    if dest in rooms[current_room]["exits"]:
         current_room = dest
         show_room()
     else:
         fast_type("You cannot go there from your current location.")
+
 
 def use_item(item):
     global has_won
@@ -195,8 +208,8 @@ def use_item(item):
             print("The sliding metal door shutters, shaking violently as it lifts.\nThe scent of rust fills your lungs as you gaze into the abyss before you..")
             # adding the darkness to the bunker exits (list method)
             b_idx = room_index("bunker")
-            if "darkness" not in [b_idx]:
-                [b_idx].append("darkness")
+            if "darkness" not in bunker_exits:
+                bunker_exits.append("darkness")
             
         else:
             print("Incorrect. The kepad beeps angrily and flashes red.")
@@ -256,5 +269,5 @@ if enterShopYN == "Y":
     rooms.append("Jack's Shop")
 if enterShopYN == "N":
     print("You decide not to enter. Perhaps you can revisit this location in the future if you ever need something.")
-if enterShopYN != "Y" or "N":
+if enterShopYN not in ("Y", "N"):
     typing("Please state 'Y' or 'N'")
