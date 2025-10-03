@@ -48,7 +48,9 @@ fast_type("\nType 'help' for commands. \n")
 current_room = "trail"     # starting room
 rooms = {
     "trail": {
-        "description": "A dusty old trail, a sign ahead of you says:\n'Welcome to Pine Vill\nQuiet village, quaint people.'", },
+        "description": "A dusty old trail, a sign ahead of you says:\n'Welcome to Pine Vill\nQuiet village, quaint people.'",
+        "exits": ["village"]
+    },
     "village": {
         "description": "Welcome to Pine Vill, a relatively small community offset from most popular locations, known for it's hospitality and traditional lifestyle.\nPerhaps you can find a vendor and purchase an item for your explorations...",
         "exits": ["trail", "forest"]
@@ -59,11 +61,15 @@ rooms = {
     },
     "bunker": {
         "description": "The path leads to what can only be described as a bunker hidden far into the woods. It's remains decorated with vines, claw marks, and various other signs suggesting of it's age.\nBeneath the surrounding overgrowth you can vaguely make out several buttons of varying numeric value... perhaps an item could help you clear the debris so that you may uncover what lies beneath.",
-        "exits": ["village", "forest"]
+        "exits": ["forest"]
     },
     "darkness": {
         "description": "A metal stairway leads down into the bunker, even more scratch marks can be seen on the walls and floor. The stairs clang and creak as you approach, groaning under new unexpected weight they hadn't felt for decades...",
-        "exits": []
+        "exits": []  # Randomized characters via Room_Exits
+    },
+    "Jack's Shop": {
+        "description": "A bell rings as you enter, with the noticeably handsome shopkeep rising to the register.\n'Hello! Welcome to Jack's Joyful Shop! How can I help you today?'",
+        "exits": ["village"]
     }
 }         #flexible list of locations
 
@@ -81,8 +87,6 @@ is_running = True
 
 def show_room():
     fast_type(f"\nYou are currently at the {current_room}.")
-    # Different descriptions based on current location
-    fast_type(f"\nYou are current at the {current_room}.")
     typing(" " + rooms[current_room]["description"])
 
 def random_letters_string(length=10):
@@ -90,18 +94,19 @@ def random_letters_string(length=10):
     return "".join(random.choice(chars) for _ in range(length))
 
 
-def alwaysShow_Rooms():
+def Room_Exits():
     if current_room == "darkness":
         rand_text = random_letters_string(10)
-    print(f"\nYou are currently at the {current_room}, you may go to {rand_text} from here.")
+        fast_type(f"\nYou are currently at the {current_room}, you may go to {rand_text} from here.")
     else:
-    exits = rooms[current_room]["exits"]
-    print(f"You are currently at the {current_room}, you may go to {exits} from here.")
+        exits = rooms[current_room]["exits"]
+        fast_type(f"\nYou are currently at the {current_room}, you may go to {exits} from here.")
 
 def show_help():
-    fast_type("\nCommands: search, go <room>, use <item>, nv, help, quit.")
-    alwaysShow_Rooms()
+    fast_type("\nCommands: search, go <room>, use <item>, Inv, help, quit.")
+    Room_Exits()
 
+Inv_Sorted = inventory.sort(key=str.lower) 
 def search_room():
     if current_room == "trail":
         typing("You pace yourself as you follow the trail, finding an abundance of spilled coins varying in cleanliness. You find six total.")
@@ -109,8 +114,11 @@ def search_room():
         if add_coins == "Y":
             fast_type(" You decide to take the coins, adding them to your inventory.")
             inventory.append("coins")
+            inventory.sort()
         if add_coins == "N":
             fast_type("You choose against taking the coins.")
+        if add_coins != "Y" or "N":
+            typing("Please state either 'Y' or 'N'")
 
     elif current_room == "village":
         typing("You see a figure in the distance, bordering the forest. Their arms stand outstretched, resembling a scarecrow...\nYou feel uneasy witnessing this...\nYou can make out large woooden establishment a short ways away from you. Large words above the entrance say, 'Jack's Joyful Shop'.")
