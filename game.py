@@ -110,19 +110,24 @@ Inv_Sorted = inventory.sort(key=str.lower)
 def search_room():
     if current_room == "trail":
         typing("You pace yourself as you follow the trail, finding an abundance of spilled coins varying in cleanliness. You find six total.")
-        add_coins = input(typing(" Would you like to take the coins?\nY or N: "))
+        typing(" Would you like to take the coins?\nY or N: ")
+        add_coins = input("> ").strip().upper()
+
         if add_coins == "Y":
             fast_type(" You decide to take the coins, adding them to your inventory.")
             inventory.append("coins")
             inventory.sort()
-        if add_coins == "N":
+
+        elif add_coins == "N":
             fast_type("You choose against taking the coins.")
-        if add_coins != "Y" or "N":
+
+        else:
             typing("Please state either 'Y' or 'N'")
 
     elif current_room == "village":
         typing("You see a figure in the distance, bordering the forest. Their arms stand outstretched, resembling a scarecrow...\nYou feel uneasy witnessing this...\nYou can make out large woooden establishment a short ways away from you. Large words above the entrance say, 'Jack's Joyful Shop'.")
-        enterShopYN = input(slow_type("\nDo you enter? Y or N: "))
+        slow_type("\nDo you enter? Y or N: ")
+        enterShopYN = input("> ").strip().upper()
         if enterShopYN == "Y":
             rooms.append("Jack's Shop")
         if enterShopYN == "N":
@@ -133,7 +138,8 @@ def search_room():
     elif current_room == "forest":
         typing("A figure stands only a matter of feet from your position, arms outstretched. They wear a dark cloak and seem to be muttering indiscernibly to themselves, possibly unaware of your presence.")
         # Cyruss battle initiation or denial
-        cyrussInteract = input(slow_type("Do you interact with them or leave them be? Y or N: "))
+        typing("Do you interact with them or leave them be? Y or N: ")
+        cyrussInteract = input("> ").strip().upper()
         if cyrussInteract == "Y":
             fast_type("As you take a few steps in their direction, their head unexpectedly snaps to meet yours. They raise their arms higher and their face becomes visible.")
             cyBattle = True
@@ -143,22 +149,26 @@ def search_room():
             typing("Please state 'Y' or 'N'")
     elif current_room == "bunker":
         typing("Scouting the surroundings, you notice the ground is layered in rocks covering what remains of the path leading to the metal door of the bunker. Do you take one?")
-        take_rock = input(fast_type("Y or N: "))
+        typing("Y or N: ")
+        take_rock = input("> ").strip().upper()
         if take_rock == "N":
             show_room()
         if take_rock == "Y":
             slow_type("A completely average rock. You could probably try to sharpen it against a nearby tree.")
             slow_type("Average Rock has been added to your inventory.")
-            sharpenRock = input(typing("Would you like to attempt to sharpen the rock on a nearby tree? Y or N "))
+            typing("Would you like to attempt to sharpen the rock on a nearby tree? Y or N ")
+            sharpenRock = input("> ").strip().upper()
             if sharpenRock == "Y":
-             rock_sub = int(input(fast_type("Rock puzzle: what is the result of (5^2) - 5?")))
+             fast_type("Rock puzzle: what is the result of (5^2) - 5?")
+             rock_sub = int(input("> ").strip().upper())
             rock_ans = 20
             if rock_sub == "20":
                 fast_type("You are successful! Sharpened Rock has been added to your inventory.")
             if rock_sub != "20":
                 rock_again = typing("Your attempt to sharpen the rock fails. Would you like to try again? Y or N: ")
                 if rock_again == "Y":
-                    rock_sub = int(input(fast_type("Rock puzzle: what is the result of (5^2) - 5?")))
+                    fast_type("Rock puzzle: what is the result of (5^2) - 5?")
+                    rock_sub = int(input("> ").strip().upper())
                 if rock_again == "N":
                     show_room()
         else:
@@ -171,9 +181,11 @@ def search_room():
             
         if "coins" in inventory:   
             slow_type("There are various items for purchase:\n$6 Flashlight\n$8 Pocket Knife\n$15 Backpack\n And more, though they extend further and further from your limited amount of pocket-money.")
-            purchaseItem = input(typing("The shopkeep asks you if you would like to purchase anything in particular today, a cheerful smile brightening their face. "))
+            typing("The shopkeep asks you if you would like to purchase anything in particular today, a cheerful smile brightening their face. ")
+            purchaseItem = input("> ").strip().upper()
             if purchaseItem == "Flashlight":
-                buyFlash = input(typing("Would you like to buy the Flashlight for six coins? Y or N: "))
+                typing("Would you like to buy the Flashlight for six coins? Y or N: ")
+                buyFlash = input("> ").strip().upper()
                 if buyFlash == "Y":
                     typing("You trade your coins for a Flashlight. Strong, durable, you feel as though you can place your trust in the glow of its beam. It's even got a little bit of weight to it.")
                     slow_type("Flashlight has been added to your inventory.")
@@ -242,8 +254,6 @@ def handle_command(cmd):
         move_player(parts[1])
     elif parts[0] == "take" and len(parts) >= 2:
         use_item(parts[1])
-    elif parts[0] == "rooms":
-        print(rooms)
     elif parts[0] =="inv":
         print("Inventory:", inventory if inventory else "(empty)")
     elif parts[0] == "quit":
