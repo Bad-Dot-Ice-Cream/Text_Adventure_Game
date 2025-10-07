@@ -1,6 +1,6 @@
 # adventure.py
 
-#Code for text to print one at a time, cuz its cool   ¯\_(ツ)_/¯
+#Code for text to print typewriter-style, cuz its cool   ¯\_(ツ)_/¯
 import sys, time
 import string
 import random
@@ -67,18 +67,15 @@ rooms = {
         "description": "A metal stairway leads down into the bunker, even more scratch marks can be seen on the walls and floor. The stairs clang and creak as you approach, groaning under new unexpected weight they hadn't felt for decades...",
         "exits": []  # Randomized characters via Room_Exits
     },
-    "Jack's Shop": {
+    "jack's shop": {
         "description": "A bell rings as you enter, with the noticeably handsome shopkeep rising to the register.\n'Hello! Welcome to Jack's Joyful Shop! How can I help you today?'",
         "exits": ["village"]
     }
 }         #flexible list of locations
 
 # The exits for each location.   If I'm currently in ______, I can go to...
-trail_exits = ["village"]
-village_exits = ["trail", "forest"]
-forest_exits = ["trail", "village", "bunker"]
-bunker_exits = ["village", "forest"]
-dark_exits = []
+for room in rooms:
+    rooms[room]["exits"] = [exit.lower() for exit in rooms[room]["exits"]]
 
 inventory = []                                # Inventory list, to be expanded during gameplay
 turns_left = 30
@@ -129,7 +126,11 @@ def search_room():
         slow_type("\nDo you enter? Y or N: ")
         enterShopYN = input("> ").strip().upper()
         if enterShopYN == "Y":
-            rooms.append("Jack's Shop")
+            if "jack's shop" not in rooms["village"]["exits"]:
+                rooms["village"]["exits"].append("jack's shop")
+                current_room = "jack's shop"
+                show_room()
+
         if enterShopYN == "N":
             print("You decide not to enter. Perhaps you can revisit this location in the future if you ever need something.")
         if enterShopYN not in ("Y", "N"):
@@ -196,8 +197,8 @@ def search_room():
                 fast_type("Unfortunately, you do not have enough money to purchase that item.")
             if purchaseItem == "Backpack":
                 fast_type("Unfortunately, you do not have enough money to purchase that item.")
-            if purchaseItem != "Flashlight" or "Pocket Knife" or "Backpack":
-                fast_type("You are unable to purchase... that. The shopkeeper gives you a strange, confused look.")
+            if purchaseItem not in ("Flashlight", "Pocket Knife", "Backpack"):
+                slow_type("You are unable to purchase... that. The shopkeeper gives you a strange, confused look.")
 
 
 
@@ -209,11 +210,9 @@ def room_index(name):
 
 def move_player(dest):
     global current_room
-    # Map each room to exits\
-    dest = dest.lower
-
-    # Checking if destination is a valid exit from the current room
-    if dest in rooms[current_room]["exits"]:
+    dest = dest.lower().strip()
+    exits = [exit.lower() for exit in rooms[current_room]["exits"]]
+    if dest in exits:
         current_room = dest
         show_room()
     else:
@@ -222,25 +221,43 @@ def move_player(dest):
 
 def use_item(item):
     global has_won
+    item = item.lower().strip()
+
     if current_room == "bunker" and item == "keypad":
-        ans = input("Keypad puzzle: enter the sum of (9 * 4) - 6: ")
+        ans = input("Keypad puzzle: enter the sum of (9 * 4) - 6: ").strip()
         if ans.isdigit() and int(ans) == ((9 * 4) - 6):    # math + conditional
             print("The sliding metal door shutters, shaking violently as it lifts.\nThe scent of rust fills your lungs as you gaze into the abyss before you..")
             # adding the darkness to the bunker exits (list method)
-            b_idx = room_index("bunker")
-            if "darkness" not in bunker_exits:
-                bunker_exits.append("darkness")
+            if "darkness" not in [e.lower() for e in rooms["bunker"]["exits"]]:
+                rooms["bunker"]["exits"].append("darkness")
             
         else:
             print("Incorrect. The kepad beeps angrily and flashes red.")
+
     elif current_room == "darkness" and item == "flashlight":
-        if "flashlight" in inventory:
+        if "flashlight" in [i.lower() for i in inventory]:
             print("With your trusty flashlight in hand, you prepare yourself to venture further into the forgotten bunker... and perhaps you will find the answers you seek...\nOr perhaps your disappearence will only raise more questions for those outside..\n You win! Thanks for playing  :D")
             has_won = True
         else:
             print("You need something to find your way through the immense darkness.")
     else:
         print("That item cannot be used here.")
+
+# === Shop Keep Entry (search_room for village) ===
+if current_room == "village":
+    typing("You see a figure in the distance, bordering the forest. Their arms stand outstretched, resembling a scarecrow...\nYou feel uneasy witnessing this...\nYou can make out a large wooden establishment a short ways away from you. Large words above the entrance say, 'Jack's Joyful Shop'.")
+slow_type("\nDo you enter? Y or N: ")
+enterShopYN = input("> ").strip().upper()
+if enterShopYN == "Y":
+    # Add shop to village exits so `go jack's shop` works
+    if "jack's shop" not in [e.lower() for e in rooms["village"]["exits"]]:
+            rooms["village"]["exits"].append("jack's shop")
+            current_room = "jack's shop"
+            show_room()
+elif enterShopYN == "N":
+    print("You decide not to enter. Perhaps you can revisit this location in the future if you ever need something.")
+else:
+    typing("Please state 'Y' or 'N'")
     
 def handle_command(cmd):
     parts = cmd.strip().lower().split()
@@ -251,7 +268,8 @@ def handle_command(cmd):
     elif parts[0] == "search":
         search_room()
     elif parts[0] == "go" and len(parts) >= 2:
-        move_player(parts[1])
+        dest = " ".join(parts[1:])
+        move_player(dest)
     elif parts[0] == "take" and len(parts) >= 2:
         use_item(parts[1])
     elif parts[0] =="inv":
@@ -277,15 +295,3 @@ while is_running and not has_won:
 
 if has_won:
     print("\n You are successful! Thanks for playing!")
-
-
-#--- Shop keep ---
-if current_room == "village":
-    print("\nYou can make out large woooden establishment a short ways away from you. Large words above the entrance say, 'Jack's Joyful Shop'.")
-    enterShopYN = input("\nDo you enter? Y or N: ")
-if enterShopYN == "Y":
-    rooms.append("Jack's Shop")
-if enterShopYN == "N":
-    print("You decide not to enter. Perhaps you can revisit this location in the future if you ever need something.")
-if enterShopYN not in ("Y", "N"):
-    typing("Please state 'Y' or 'N'")
